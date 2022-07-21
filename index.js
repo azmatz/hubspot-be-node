@@ -22,9 +22,9 @@ const userRecord = new Schema({
   token: String
 });
 
-
 const Record = mongoose.model('Record', userRecord);
 
+// HubSpot default request
 app.get('/', async (req, res) => {
   const parsed = queryString.parse(req.url)
   const record = await new Record({ email: parsed.userEmail, contactId: parsed.hs_object_id })
@@ -42,6 +42,8 @@ app.get('/', async (req, res) => {
   res.end()
 })
 
+// HubSpot callback
+// Get access token from special code
 app.get('/oauth-callback', async (req, res) => {
   if (req.query) {
     const formData = {
@@ -62,6 +64,8 @@ app.get('/oauth-callback', async (req, res) => {
         console.log(record);
         await record.save()
         let giftcenter_url
+
+        // Switch to correct GiftCenter
         if (apiResponse.user.includes('giftagram')) giftcenter_url = 'http://localhost:3000' 
         res.redirect(`${giftcenter_url}/product-directory?token=${token.access_token}&userEmail=${apiResponse.user}`);
       } catch (e) {
@@ -73,13 +77,14 @@ app.get('/oauth-callback', async (req, res) => {
   }
 });
 
+// Get single HubSpot contact
 app.post('/hubspot-contacts/:access_token', async (req, res) => {
   console.log(req.body)
   if (req.params.access_token && req.body.userEmail) {
     const contactId = await Record.find({ email: req.body.userEmail })
-    console.log("ContactIDD", contactId[contactId.length - 1] )
+    console.log("ContactID", contactId[contactId.length - 1] )
     const hubspotClient = new hubspot.Client({"accessToken":req.params.access_token});
-    const properties = ['firstname', 'lastname', 'phone', 'email', 'address', 'state', 'zip', 'country'];
+    const properties = ['firstname', 'lastname', 'phone', 'email', 'address', 'state', 'zip', 'country', 'city'];
     const propertiesWithHistory = undefined;
     const associations = undefined;
     const archived = false;
@@ -95,6 +100,7 @@ app.post('/hubspot-contacts/:access_token', async (req, res) => {
   }
 });
 
+// Search HubSpot contacts
 app.post('/search-hubspot-contacts/:access_token', async (req, res) => {
   console.log("REQ", req.body)
   console.log("ACCCESS", req.params.access_token)
@@ -104,7 +110,7 @@ app.post('/search-hubspot-contacts/:access_token', async (req, res) => {
 
     const filter = { propertyName: 'firstname', operator: 'GTE', value: req.body.query }
     const filterGroup = { filters: [filter] }
-    const properties = ['firstname', 'lastname', 'phone', 'email', 'address', 'state', 'zip', 'country'];
+    const properties = ['firstname', 'lastname', 'phone', 'email', 'address', 'state', 'zip', 'country', 'city'];
     
     const publicObjectSearchRequest = {
         filterGroups: [filterGroup],
@@ -114,10 +120,15 @@ app.post('/search-hubspot-contacts/:access_token', async (req, res) => {
     try {
       const apiResponse = await hubspotClient.crm.contacts.searchApi.doSearch(publicObjectSearchRequest);
       console.log(JSON.stringify(apiResponse, null, 2));
+      res.status(200).send(apiResponse)
     } catch (e) {
       e.message === 'HTTP request failed'
-        ? console.error(JSON.stringify(e.response, null, 2))
+        ? console.error(e.response, null, 2)
         : console.error(e)
+        if (e.body.category == 'EXPIRED_AUTHENTICATION') {
+          console.log("API-------------------------------", e.body.category)
+          res.status(201).send({ url: `https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&redirect_uri=https://a410-38-70-168-4.ngrok.io/oauth-callback&scope=contacts%20crm.lists.read%20crm.objects.contacts.read%20crm.objects.contacts.write%20crm.objects.companies.write%20crm.schemas.contacts.read%20crm.lists.write%20crm.objects.companies.read%20crm.objects.deals.read%20crm.objects.deals.write%20crm.schemas.companies.read%20crm.schemas.companies.write%20crm.schemas.contacts.write%20crm.schemas.deals.read%20crm.schemas.deals.write%20crm.objects.owners.read` })
+        }
     }
   }
 });
