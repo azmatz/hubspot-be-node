@@ -1,4 +1,5 @@
 const express = require('express')
+require('dotenv').config()
 const app = express()
 const port = 5500
 const axios = require('axios')
@@ -33,7 +34,7 @@ app.get('/', async (req, res) => {
     "results": [{
         "objectId": 245,
         "title": "Send Gift via Giftcenter",
-        "link": `https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&redirect_uri=https://5e2c-99-79-172-208.ngrok.io/oauth-callback&scope=contacts%20crm.lists.read%20crm.objects.contacts.read%20crm.objects.contacts.write%20crm.objects.companies.write%20crm.schemas.contacts.read%20crm.lists.write%20crm.objects.companies.read%20crm.objects.deals.read%20crm.objects.deals.write%20crm.schemas.companies.read%20crm.schemas.companies.write%20crm.schemas.contacts.write%20crm.schemas.deals.read%20crm.schemas.deals.write%20crm.objects.owners.read`,
+        "link": process.env.DEFAULT_LINK,
         "created": "2019-09-15",
         "description": "Giftagram. Making it easy to be thoughtful.",
       },
@@ -48,13 +49,13 @@ app.get('/oauth-callback', async (req, res) => {
   if (req.query) {
     const formData = {
       grant_type: 'authorization_code',
-      client_id: '5cd0947b-1d83-4ec0-a125-11d942360929',
-      client_secret: 'a7f06796-590f-4183-9ff6-1bdd76040071',
-      redirect_uri: 'https://5e2c-99-79-172-208.ngrok.io/oauth-callback',
+      client_id: process.env.CLIENT_ID,
+      client_secret: process.env.CLIENT_SECRET,
+      redirect_uri: process.env.REDIRECT_URI,
       code: req.query.code
     }
 
-    request.post('https://api.hubapi.com/oauth/v1/token', { form: formData }, async (err, data) => {  
+    request.post(process.env.HS_GET_TOKEN, { form: formData }, async (err, data) => {  
       const token = JSON.parse(data.body)
       const hubspotClient = new hubspot.Client({});
     
@@ -128,8 +129,7 @@ app.post('/search-hubspot-contacts/:access_token', async (req, res) => {
         ? console.error(e.response, null, 2)
         : console.error(e)
         if (e.body.category == 'EXPIRED_AUTHENTICATION') {
-          console.log("API-------------------------------", e.body.category)
-          res.status(201).send({ url: `https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&redirect_uri=https://5e2c-99-79-172-208.ngrok.io/oauth-callback&scope=contacts%20crm.lists.read%20crm.objects.contacts.read%20crm.objects.contacts.write%20crm.objects.companies.write%20crm.schemas.contacts.read%20crm.lists.write%20crm.objects.companies.read%20crm.objects.deals.read%20crm.objects.deals.write%20crm.schemas.companies.read%20crm.schemas.companies.write%20crm.schemas.contacts.write%20crm.schemas.deals.read%20crm.schemas.deals.write%20crm.objects.owners.read` })
+          res.status(201).send({ url: process.env.DEFAULT_LINK })
         }
     }
   }
