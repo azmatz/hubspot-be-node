@@ -33,7 +33,7 @@ app.get('/', async (req, res) => {
     "results": [{
         "objectId": 245,
         "title": "Send Gift via Giftcenter",
-        "link": `https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&redirect_uri=https://a410-38-70-168-4.ngrok.io/oauth-callback&scope=contacts%20crm.lists.read%20crm.objects.contacts.read%20crm.objects.contacts.write%20crm.objects.companies.write%20crm.schemas.contacts.read%20crm.lists.write%20crm.objects.companies.read%20crm.objects.deals.read%20crm.objects.deals.write%20crm.schemas.companies.read%20crm.schemas.companies.write%20crm.schemas.contacts.write%20crm.schemas.deals.read%20crm.schemas.deals.write%20crm.objects.owners.read`,
+        "link": `https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&redirect_uri=https://5e2c-99-79-172-208.ngrok.io/oauth-callback&scope=contacts%20crm.lists.read%20crm.objects.contacts.read%20crm.objects.contacts.write%20crm.objects.companies.write%20crm.schemas.contacts.read%20crm.lists.write%20crm.objects.companies.read%20crm.objects.deals.read%20crm.objects.deals.write%20crm.schemas.companies.read%20crm.schemas.companies.write%20crm.schemas.contacts.write%20crm.schemas.deals.read%20crm.schemas.deals.write%20crm.objects.owners.read`,
         "created": "2019-09-15",
         "description": "Giftagram. Making it easy to be thoughtful.",
       },
@@ -50,7 +50,7 @@ app.get('/oauth-callback', async (req, res) => {
       grant_type: 'authorization_code',
       client_id: '5cd0947b-1d83-4ec0-a125-11d942360929',
       client_secret: 'a7f06796-590f-4183-9ff6-1bdd76040071',
-      redirect_uri: 'https://a410-38-70-168-4.ngrok.io/oauth-callback',
+      redirect_uri: 'https://5e2c-99-79-172-208.ngrok.io/oauth-callback',
       code: req.query.code
     }
 
@@ -67,6 +67,8 @@ app.get('/oauth-callback', async (req, res) => {
 
         // Switch to correct GiftCenter
         if (apiResponse.user.includes('giftagram')) giftcenter_url = 'http://localhost:3000' 
+
+        // Redirect to Product Directory
         res.redirect(`${giftcenter_url}/product-directory?token=${token.access_token}&userEmail=${apiResponse.user}`);
       } catch (e) {
         e.message === 'HTTP request failed'
@@ -78,7 +80,7 @@ app.get('/oauth-callback', async (req, res) => {
 });
 
 // Get single HubSpot contact
-app.post('/hubspot-contacts/:access_token', async (req, res) => {
+app.post('/hubspot-contact/:access_token', async (req, res) => {
   console.log(req.body)
   if (req.params.access_token && req.body.userEmail) {
     const contactId = await Record.find({ email: req.body.userEmail })
@@ -127,7 +129,7 @@ app.post('/search-hubspot-contacts/:access_token', async (req, res) => {
         : console.error(e)
         if (e.body.category == 'EXPIRED_AUTHENTICATION') {
           console.log("API-------------------------------", e.body.category)
-          res.status(201).send({ url: `https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&redirect_uri=https://a410-38-70-168-4.ngrok.io/oauth-callback&scope=contacts%20crm.lists.read%20crm.objects.contacts.read%20crm.objects.contacts.write%20crm.objects.companies.write%20crm.schemas.contacts.read%20crm.lists.write%20crm.objects.companies.read%20crm.objects.deals.read%20crm.objects.deals.write%20crm.schemas.companies.read%20crm.schemas.companies.write%20crm.schemas.contacts.write%20crm.schemas.deals.read%20crm.schemas.deals.write%20crm.objects.owners.read` })
+          res.status(201).send({ url: `https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&https://app.hubspot.com/oauth/authorize?client_id=5cd0947b-1d83-4ec0-a125-11d942360929&redirect_uri=https://5e2c-99-79-172-208.ngrok.io/oauth-callback&scope=contacts%20crm.lists.read%20crm.objects.contacts.read%20crm.objects.contacts.write%20crm.objects.companies.write%20crm.schemas.contacts.read%20crm.lists.write%20crm.objects.companies.read%20crm.objects.deals.read%20crm.objects.deals.write%20crm.schemas.companies.read%20crm.schemas.companies.write%20crm.schemas.contacts.write%20crm.schemas.deals.read%20crm.schemas.deals.write%20crm.objects.owners.read` })
         }
     }
   }
