@@ -2,14 +2,11 @@ const express = require('express')
 require('dotenv').config()
 const app = express()
 const port = 5500
-const axios = require('axios')
 const queryString = require('query-string');
-const FormData = require('form-data')
 const request = require('request');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const ObjectId = Schema.ObjectId;
 const hubspot = require('@hubspot/api-client')
 
 app.use(express.json());
